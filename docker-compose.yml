@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5433:5432"
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - "${PWD}/airflow/db-data:/var/lib/postgresql/data"
+      - "${PWD}/airflow/script/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql"
+
+  airflow:
+    image: airflow-2.10.0
+    restart: always
+    depends_on:
+      - postgres
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ${PWD}/airflow/dags:/opt/airflow/dags
+      - ${PWD}/airflow/dbt_docs_dir:/opt/airflow/dbt_docs_dir
+      - ${HOME}/.aws:/home/airflow/.aws:ro
+    ports:
+      - "8080:8080"
+    command: airflow standalone
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    env_file:
+      - ./airflow/config/airflow-cfg.env
+      - ./airflow/config/.env

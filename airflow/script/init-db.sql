@@ -1,0 +1,3 @@
+CREATE DATABASE dbt_practice;
+CREATE USER dbt_user WITH ENCRYPTED PASSWORD 'dbt_pass';
+GRANT ALL PRIVILEGES ON DATABASE dbt_practice TO dbt_user;
